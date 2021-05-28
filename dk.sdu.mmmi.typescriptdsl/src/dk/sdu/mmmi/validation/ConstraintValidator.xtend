@@ -2,44 +2,44 @@ package dk.sdu.mmmi.validation
 
 import dk.sdu.mmmi.typescriptdsl.And
 import dk.sdu.mmmi.typescriptdsl.Attribute
-import dk.sdu.mmmi.typescriptdsl.CompareConstraint
+import dk.sdu.mmmi.typescriptdsl.Comparison
 import dk.sdu.mmmi.typescriptdsl.Constraint
 import dk.sdu.mmmi.typescriptdsl.Div
 import dk.sdu.mmmi.typescriptdsl.Expression
 import dk.sdu.mmmi.typescriptdsl.Field
-import dk.sdu.mmmi.typescriptdsl.Minus
-import dk.sdu.mmmi.typescriptdsl.Mult
+import dk.sdu.mmmi.typescriptdsl.Sub
 import dk.sdu.mmmi.typescriptdsl.Or
 import dk.sdu.mmmi.typescriptdsl.Parenthesis
-import dk.sdu.mmmi.typescriptdsl.Plus
+import dk.sdu.mmmi.typescriptdsl.Add
 import java.util.List
 import org.eclipse.xtext.validation.Check
 import dk.sdu.mmmi.typescriptdsl.TypescriptdslPackage
 import dk.sdu.mmmi.typescriptdsl.IntType
 import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.Mul
 
 class ConstraintValidator extends AbstractTypescriptdslValidator {
 	
 	@Check
 	def validateField(Field field) {
-		if (!(field.attr.type instanceof IntType)) 
-			error('''Attribute «field.attr.name» is not of type int''', TypescriptdslPackage.Literals.FIELD__ATTR)		
+		if (!(field.attribute.type instanceof IntType)) 
+			error('''Attribute «field.attribute.name» is not of type int''', TypescriptdslPackage.Literals.FIELD__ATTRIBUTE)		
 	}
 	
-	@Check
-	def validateConstraint(Attribute attr) {
-		val List<CompareConstraint> compares = newArrayList()
-		attr.constraint.extractListOfCompareConstraints(compares)
-		compares.forEach[
-			val list = countFields
-			if (!list.exists[exists[it === attr.name]]) {
-				error('''Attribute «attr.name» is not used in constraint''', TypescriptdslPackage.Literals.ATTRIBUTE__CONSTRAINT)	
-			}
-			if (!list.get(0).forall[!list.get(1).contains(it)]) {
-				error('Attribute name is the same as on the left side', it, TypescriptdslPackage.Literals.COMPARE_CONSTRAINT__RIGHT)
-			}
-		]
-	}
+//	@Check
+//	def validateConstraint(Attribute attribute) {
+//		val List<Comparison> compares = newArrayList()
+//		attribute.constraint.extractListOfCompareConstraints(compares)
+//		compares.forEach[
+//			val list = countFields
+//			if (!list.exists[exists[it === attribute.name]]) {
+//				error('''Attribute «attribute.name» is not used in constraint''', TypescriptdslPackage.Literals.ATTRIBUTE__CONSTRAINT)	
+//			}
+//			if (!list.get(0).forall[!list.get(1).contains(it)]) {
+//				error('Attribute name is the same as on the left side', it, TypescriptdslPackage.Literals.COMPARISON__RIGHT)
+//			}
+//		]
+//	}
 	
 	@Check
 	def validatePrimary(Table table) {
@@ -54,15 +54,15 @@ class ConstraintValidator extends AbstractTypescriptdslValidator {
 	}
 	
 	
-	def void extractListOfCompareConstraints(Constraint con, List<CompareConstraint> list) {
+	def void extractListOfCompareConstraints(Constraint con, List<Comparison> list) {
 		switch con {
 			Or: { con.left.extractListOfCompareConstraints(list); con.right.extractListOfCompareConstraints(list) }
 			And: { con.left.extractListOfCompareConstraints(list); con.right.extractListOfCompareConstraints(list) }
-			CompareConstraint: list.add(con)
+			Comparison: list.add(con)
 		}
 	}
 	
-	def countFields(CompareConstraint con) {
+	def countFields(Comparison con) {
 		val List<String> left = newArrayList()
 		val List<String> right = newArrayList()
 		con.left.extractFields(left)
@@ -72,12 +72,12 @@ class ConstraintValidator extends AbstractTypescriptdslValidator {
 	
 	def void extractFields(Expression exp, List<String> list) {
 		switch exp {
-			Plus: { exp.left.extractFields(list); exp.right.extractFields(list) }
-			Minus: { exp.left.extractFields(list); exp.right.extractFields(list) }
-			Mult: { exp.left.extractFields(list); exp.right.extractFields(list) }
+			Add: { exp.left.extractFields(list); exp.right.extractFields(list) }
+			Sub: { exp.left.extractFields(list); exp.right.extractFields(list) }
+			Mul: { exp.left.extractFields(list); exp.right.extractFields(list) }
 			Div: { exp.left.extractFields(list); exp.right.extractFields(list) }
 			Parenthesis: exp.exp.extractFields(list)
-			Field: list.add(exp.attr.name)
+			Field: list.add(exp.attribute.name)
 		}
 	}
 }

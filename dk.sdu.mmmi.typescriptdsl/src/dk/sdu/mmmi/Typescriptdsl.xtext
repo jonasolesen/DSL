@@ -11,7 +11,7 @@ Database:
 ;
 
 Config returns Config:
-	{ConfigProvider} 'provider' value=STRING | // Database type
+	{ConfigProvider} 'provider' value=STRING |
 	{ConfigUrl} 'url' value=STRING |
 	{ConfigPort} 'port' value=INT |
 	{ConfigUsername} 'username' value=STRING |
@@ -20,66 +20,116 @@ Config returns Config:
 
 Table:
 	'table' name=ID ('extends' superType=[Table])? ':'
-		attributes += Attribute+
+		attributes+=Attribute+
+		
+		functions+=Function*
 ;
 
 Attribute:
 	name=ID ':' type=AttributeType (optional?='?')? (primary?='primary')? 
-		('constraint'  constraint=OrConstraint)?
+		('constraint' constraint=OrConstraint)?
+;
+
+Function:
+	name=ID ':' function=(FunctionRead | FunctionCreate | FunctionUpdate | FunctionDelete)
+;
+
+FunctionRead:
+	'read' where=FunctionReadParameters (select=FunctionSelect)?
+;
+
+FunctionCreate:
+	'create' where=FunctionWriteParameters (select=FunctionSelect)?
+;
+
+FunctionUpdate:
+	'update' where=FunctionReadParameters 'set' update=FunctionWriteParameters (select=FunctionSelect)?
+;
+
+FunctionDelete:
+	'delete' where=FunctionReadParameters (select=FunctionSelect)?
+;
+
+FunctionReadParameters:
+	'(' parameters += ParameterOrConstraint (',' parameters += ParameterOrConstraint)* ')'
+;
+
+FunctionWriteParameters:
+	'(' parameters += Record (',' parameters += Record)* ')'
+;
+
+Record:
+	key=[Attribute] ':' value=SimpleType
+;
+
+Boolean:
+	'true' | 'false'
+;
+
+SimpleType:
+    INT | STRING | Boolean
+;
+
+FunctionSelect:
+	{FunctionSelect} 'select' props += [Attribute]+
+;
+
+ParameterOrConstraint:
+	constraint = OrConstraint | parameter = [Attribute]
 ;
 
 OrConstraint returns Constraint:
-	AndConstraint ({Or.left=current} '||' right=AndConstraint)*
+	AndConstraint ('||' {Or.left=current} right=AndConstraint)* 
 ;
 
-AndConstraint: 
-	PrimaryConstraint ({And.left=current} '&&' right=PrimaryConstraint)*
+AndConstraint returns Constraint:
+	Condition ('&&' {And.left=current} right=Condition)*
 ;
 
-PrimaryConstraint: 		 
- 	{RegexConstraint} value=STRING |
- 	{CompareConstraint} left=Expression operator=Operators right=Expression
+Condition returns Constraint:
+	Comparison |
+	{RegexConstraint} value=STRING |
+ 	{StringConstraint} left=[Attribute] ('contains' | 'equals') right=STRING
 ;
 
-Operators: 
-	'>' |
-	'>=' |
-	'<' |
-	'<=' |
-	'='
+Comparison:
+	left=Expression operator=Operator right=Expression
 ;
 
 Expression returns Expression:
-	Factor (({Plus.left=current} '+' | {Minus.left=current} '-')  right=Factor)*
+	Factor ( ('+' {Add.left=current} | '-' {Sub.left=current}) right=Factor)*
 ;
 
 Factor returns Expression:
-	Primary (({Mult.left=current} '*' | {Div.left=current} '/')  right=Primary)*
+	Primitive ( ('*' {Mul.left=current} | '/' {Div.left=current}) right=Primitive)*
 ;
 
-Primary returns Expression:
-	NumberExp | Field | Parenthesis
+Primitive returns Expression:
+	Field | NumberExp | Parenthesis
+;
+
+Operator: 
+	{Gt} '>' | {Gte} '>=' | {Lt} '<' | {Lte} '<=' | {Equals} '=='
+;
+
+Field:
+	attribute=[Attribute]
 ;
 
 Parenthesis:
 	'(' exp=Expression ')'
 ;
 
-Field:
-	attr=[Attribute]
-;
-
 NumberExp:
 	value=INT
 ;
-
 
 AttributeType returns AttributeType:
 	PrimaryType | TableType
 ;
 
 PrimaryType returns PrimaryType:
-	{IntType}'int' | {StringType} 'string' | {DateType} 'date' 
+	{IntType} 'int' | {StringType} 'string' | {DateType} 'date'
 ;
 
 TableType returns TableType:
