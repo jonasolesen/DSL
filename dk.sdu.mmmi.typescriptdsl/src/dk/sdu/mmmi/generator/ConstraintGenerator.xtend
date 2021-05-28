@@ -20,6 +20,11 @@ import dk.sdu.mmmi.typescriptdsl.Comparison
 import dk.sdu.mmmi.typescriptdsl.Add
 import dk.sdu.mmmi.typescriptdsl.Sub
 import dk.sdu.mmmi.typescriptdsl.Mul
+import dk.sdu.mmmi.typescriptdsl.StringConstraint
+import dk.sdu.mmmi.typescriptdsl.BooleanConstraint
+import dk.sdu.mmmi.typescriptdsl.Operator
+import dk.sdu.mmmi.typescriptdsl.Gte
+import dk.sdu.mmmi.typescriptdsl.Equals
 
 class ConstraintGenerator implements IntermediateGenerator {
 
@@ -60,7 +65,13 @@ class ConstraintGenerator implements IntermediateGenerator {
 	def CharSequence constraints(Constraint cons, Attribute current) {
 		switch cons {
 			RegexConstraint: '''new RegExp(/«cons.value»/g).test(value.«current.name»)'''
-			Comparison: '''«cons.left.printExp» «cons.operator» «cons.right.printExp»'''
+			StringConstraint: {
+				val operator = cons.right === 'equals'
+						? '''«cons.left.name = cons.right»''' : '''«cons.left.name».includes('«cons.right»')'''
+				'''value.«operator»'''
+			}
+			BooleanConstraint: '''«cons.left.name» = «cons.right»'''
+			Comparison: '''«cons.left.printExp» «cons.operator.asString» «cons.right.printExp»'''
 			Or: '''«cons.left.constraints(current)» || «cons.right.constraints(current)»'''
 			And: '''«cons.left.constraints(current)» && «cons.right.constraints(current)»'''
 			default:
@@ -82,8 +93,19 @@ class ConstraintGenerator implements IntermediateGenerator {
 		}
 	}
 
+	def CharSequence asString(Operator operator) {
+		switch operator {
+			Gte: '>='
+			Equals: '=='
+		}
+	}
+
 	def Set<String> findFields(Constraint con, Attribute current, Set<String> fields) {
 		switch con {
+			StringConstraint:
+				fields.add(con.left.name)
+			BooleanConstraint:
+				fields.add(con.left.name)
 			Comparison: {
 				con.left.extractFields(fields)
 				con.right.extractFields(fields)
@@ -100,6 +122,8 @@ class ConstraintGenerator implements IntermediateGenerator {
 				con.left.findFields(current, fields)
 				con.right.findFields(current, fields)
 			}
+			default:
+				return fields
 		}
 		fields
 	}
@@ -107,19 +131,19 @@ class ConstraintGenerator implements IntermediateGenerator {
 	def void extractFields(Expression exp, Set<String> fields) {
 		switch exp {
 			Add: {
-				exp.left.extractFields(fields);
+				exp.left.extractFields(fields)
 				exp.right.extractFields(fields)
 			}
 			Sub: {
-				exp.left.extractFields(fields);
+				exp.left.extractFields(fields)
 				exp.right.extractFields(fields)
 			}
 			Mul: {
-				exp.left.extractFields(fields);
+				exp.left.extractFields(fields)
 				exp.right.extractFields(fields)
 			}
 			Div: {
-				exp.left.extractFields(fields);
+				exp.left.extractFields(fields)
 				exp.right.extractFields(fields)
 			}
 			Parenthesis:

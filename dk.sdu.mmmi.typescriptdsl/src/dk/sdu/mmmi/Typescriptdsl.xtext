@@ -22,7 +22,7 @@ Table:
 	'table' name=ID ('extends' superType=[Table])? ':'
 		attributes+=Attribute+
 		
-		functions+=Function*
+		functions+=BaseFunction*
 ;
 
 Attribute:
@@ -30,32 +30,32 @@ Attribute:
 		('constraint' constraint=OrConstraint)?
 ;
 
-Function:
-	name=ID ':' function=(FunctionRead | FunctionCreate | FunctionUpdate | FunctionDelete)
+BaseFunction:
+	name=ID ':' body=(FunctionRead | FunctionCreate | FunctionUpdate | FunctionDelete)
 ;
 
-FunctionRead:
-	'read' where=FunctionReadParameters (select=FunctionSelect)?
+FunctionCreate returns Function:
+	{FunctionCreate} 'create' data=FunctionWriteParameters (select=FunctionSelect)?
 ;
 
-FunctionCreate:
-	'create' where=FunctionWriteParameters (select=FunctionSelect)?
+FunctionRead returns Function:
+	{FunctionRead} 'read' where=FunctionReadParameters (select=FunctionSelect)?
 ;
 
-FunctionUpdate:
-	'update' where=FunctionReadParameters 'set' update=FunctionWriteParameters (select=FunctionSelect)?
+FunctionUpdate returns Function:
+	{FunctionUpdate} 'update' where=FunctionReadParameters 'set' update=FunctionWriteParameters (select=FunctionSelect)?
 ;
 
-FunctionDelete:
-	'delete' where=FunctionReadParameters (select=FunctionSelect)?
+FunctionDelete returns Function:
+	{FunctionDelete} 'delete' where=FunctionReadParameters (select=FunctionSelect)?
 ;
 
 FunctionReadParameters:
-	'(' parameters += ParameterOrConstraint (',' parameters += ParameterOrConstraint)* ')'
+	'(' parameters+=ParameterOrConstraint (',' parameters+=ParameterOrConstraint)* ')'
 ;
 
 FunctionWriteParameters:
-	'(' parameters += Record (',' parameters += Record)* ')'
+	'(' records+=Record (',' records+=Record)* ')'
 ;
 
 Record:
@@ -67,15 +67,15 @@ Boolean:
 ;
 
 SimpleType:
-    INT | STRING | Boolean
+    {SimpleType} INT | {SimpleType} STRING | {BoolType} Boolean
 ;
 
 FunctionSelect:
-	{FunctionSelect} 'select' props += [Attribute]+
+	'select' props+=[Attribute]+
 ;
 
 ParameterOrConstraint:
-	constraint = OrConstraint | parameter = [Attribute]
+	constraint = OrConstraint | attribute=[Attribute]
 ;
 
 OrConstraint returns Constraint:
@@ -89,7 +89,8 @@ AndConstraint returns Constraint:
 Condition returns Constraint:
 	Comparison |
 	{RegexConstraint} value=STRING |
- 	{StringConstraint} left=[Attribute] ('contains' | 'equals') right=STRING
+	{BooleanConstraint} left=[Attribute] 'is' right=Boolean |
+	{StringConstraint} left=[Attribute] ('contains' | 'equals') right=STRING
 ;
 
 Comparison:
@@ -129,7 +130,7 @@ AttributeType returns AttributeType:
 ;
 
 PrimaryType returns PrimaryType:
-	{IntType} 'int' | {StringType} 'string' | {DateType} 'date'
+	{IntType} 'int' | {StringType} 'string' | {DateType} 'date' | {BoolType} 'boolean'
 ;
 
 TableType returns TableType:
