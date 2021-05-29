@@ -13,7 +13,8 @@ class TypeGenerator implements FileGenerator {
 			new TableTypeGenerator,
 			new DelegateGenerator,
 			new TableDataGenerator,
-			new ConstraintGenerator
+			new ConstraintGenerator,
+			new FunctionGenerator
 		)
 
 		fsa.generateFile('index.ts', generators.map[generate(tables)].join('\n'))

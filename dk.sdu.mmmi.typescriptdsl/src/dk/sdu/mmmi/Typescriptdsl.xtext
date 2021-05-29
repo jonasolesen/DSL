@@ -43,15 +43,15 @@ FunctionRead returns Function:
 ;
 
 FunctionUpdate returns Function:
-	{FunctionUpdate} 'update' where=FunctionReadParameters 'set' update=FunctionWriteParameters (select=FunctionSelect)?
+	{FunctionUpdate} 'update' where=FunctionReadParameters 'set' data=FunctionWriteParameters
 ;
 
 FunctionDelete returns Function:
-	{FunctionDelete} 'delete' where=FunctionReadParameters (select=FunctionSelect)?
+	{FunctionDelete} 'delete' where=FunctionReadParameters
 ;
 
 FunctionReadParameters:
-	'(' parameters+=ParameterOrConstraint (',' parameters+=ParameterOrConstraint)* ')'
+	'(' parameters+=FunctionParameter (',' parameters+=FunctionParameter)* ')'
 ;
 
 FunctionWriteParameters:
@@ -59,23 +59,23 @@ FunctionWriteParameters:
 ;
 
 Record:
-	key=[Attribute] ':' value=SimpleType
+	key=[Attribute] ':' value=Literal
 ;
 
 Boolean:
 	'true' | 'false'
 ;
 
-SimpleType:
-    {SimpleType} INT | {SimpleType} STRING | {BoolType} Boolean
+Literal:
+    {IntegerLiteral} value=INT | {StringLiteral} value=STRING | {BooleanLiteral} value=Boolean
 ;
 
 FunctionSelect:
-	'select' props+=[Attribute]+
+	'select' attributes+=[Attribute]+
 ;
 
-ParameterOrConstraint:
-	constraint = OrConstraint | attribute=[Attribute]
+FunctionParameter:
+	attribute=[Attribute] | constraint=(FunctionComparison | BooleanConstraint | StringConstraint)
 ;
 
 OrConstraint returns Constraint:
@@ -86,11 +86,31 @@ AndConstraint returns Constraint:
 	Condition ('&&' {And.left=current} right=Condition)*
 ;
 
+FunctionComparison:
+	left=[Attribute] operator=Operator right=Literal
+;
+
+BooleanConstraint returns FunctionComparison:
+	left=[Attribute] operator=BooleanComparison right=Literal
+;
+
+StringConstraint returns FunctionComparison:
+	left=[Attribute] operator=StringComparison right=Literal
+;
+
+BooleanComparison returns Operator:
+	{Is} 'is'
+;
+
+StringComparison returns Operator:
+	{Contains} 'contains' | {Equals} 'equals'
+;
+
 Condition returns Constraint:
 	Comparison |
+	{BooleanConstraint} left=[Attribute] operator=BooleanComparison right=Boolean |
 	{RegexConstraint} value=STRING |
-	{BooleanConstraint} left=[Attribute] 'is' right=Boolean |
-	{StringConstraint} left=[Attribute] ('contains' | 'equals') right=STRING
+	{StringConstraint} left=[Attribute] operator=StringComparison right=STRING
 ;
 
 Comparison:
@@ -109,7 +129,7 @@ Primitive returns Expression:
 	Field | NumberExp | Parenthesis
 ;
 
-Operator: 
+Operator returns Operator: 
 	{Gt} '>' | {Gte} '>=' | {Lt} '<' | {Lte} '<=' | {Equals} '=='
 ;
 

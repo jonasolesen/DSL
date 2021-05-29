@@ -1,18 +1,22 @@
 package dk.sdu.mmmi.generator
 
-import dk.sdu.mmmi.typescriptdsl.Table
-import java.util.ArrayList
-import dk.sdu.mmmi.typescriptdsl.IntType
-import dk.sdu.mmmi.typescriptdsl.StringType
-import dk.sdu.mmmi.typescriptdsl.DateType
 import dk.sdu.mmmi.typescriptdsl.AttributeType
-import dk.sdu.mmmi.typescriptdsl.Constraint
-import dk.sdu.mmmi.typescriptdsl.Comparison
-import dk.sdu.mmmi.typescriptdsl.Gte
+import dk.sdu.mmmi.typescriptdsl.BooleanLiteral
+import dk.sdu.mmmi.typescriptdsl.Contains
+import dk.sdu.mmmi.typescriptdsl.DateType
+import dk.sdu.mmmi.typescriptdsl.Equals
+import dk.sdu.mmmi.typescriptdsl.FunctionComparison
 import dk.sdu.mmmi.typescriptdsl.Gt
+import dk.sdu.mmmi.typescriptdsl.Gte
+import dk.sdu.mmmi.typescriptdsl.IntType
+import dk.sdu.mmmi.typescriptdsl.IntegerLiteral
+import dk.sdu.mmmi.typescriptdsl.Literal
 import dk.sdu.mmmi.typescriptdsl.Lt
 import dk.sdu.mmmi.typescriptdsl.Lte
-import dk.sdu.mmmi.typescriptdsl.Equals
+import dk.sdu.mmmi.typescriptdsl.StringLiteral
+import dk.sdu.mmmi.typescriptdsl.StringType
+import dk.sdu.mmmi.typescriptdsl.Table
+import java.util.ArrayList
 
 class Helpers {
 
@@ -68,7 +72,7 @@ class Helpers {
 		if(primaries.size > 1) throw new Exception('''Only one primary key can be defined for «table.name»''')
 		primaries.head
 	}
-	
+
 	static def asString(AttributeType type) {
 		switch type {
 			IntType: 'number'
@@ -77,16 +81,31 @@ class Helpers {
 			default: 'unknown'
 		}
 	}
-	
-//	static def asPrismaObject(Condition constraint) {
-//		if (constraint)
-//		val operator = switch constraint.left {
-//			Gt: 'gt'
-//			Gte: 'gte'
-//			Lt: 'lt'
-//			Lte: 'lte'
-//			Equals: 'equals'
-//			Contains:
-//		}
-//	}
+
+	static def singleQuotes(String input) {
+		"'" + input + "'"
+	}
+
+	static def asQueryObject(FunctionComparison constraint) {
+		val operator = switch constraint.operator {
+			Gt: 'gt'
+			Gte: 'gte'
+			Lt: 'lt'
+			Lte: 'lte'
+			Equals: 'equals'
+			Contains: 'contains'
+			default: null
+		}
+
+		if (operator === null) return '''«constraint.left.name»: «constraint.right.asString»'''
+		return '''«constraint.left.name»: { «operator»: «constraint.right.asString» }'''
+	}
+
+	static def asString(Literal literal) {
+		switch literal {
+			StringLiteral: literal.value.singleQuotes
+			BooleanLiteral: literal.value
+			IntegerLiteral: literal.value
+		}
+	}
 }

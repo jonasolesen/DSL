@@ -3,6 +3,7 @@ package dk.sdu.mmmi.scoping
 import dk.sdu.mmmi.typescriptdsl.Attribute
 import dk.sdu.mmmi.typescriptdsl.Function
 import dk.sdu.mmmi.typescriptdsl.FunctionReadParameters
+import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameters
 import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
 import org.eclipse.emf.ecore.EObject
@@ -14,7 +15,6 @@ import org.eclipse.xtext.scoping.impl.SimpleScope
 
 import static dk.sdu.mmmi.typescriptdsl.TypescriptdslPackage.Literals.*
 import static org.eclipse.xtext.EcoreUtil2.*
-import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameters
 
 /** 
  * This class contains custom scoping description.
@@ -24,10 +24,10 @@ import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameters
 class TypescriptdslScopeProvider extends AbstractTypescriptdslScopeProvider {
 	override getScope(EObject context, EReference reference) {
 		val table = getContainerOfType(context, Table)
-		if (table === null) return super.getScope(context, reference)
+		if(table === null) return super.getScope(context, reference)
 		val scalars = table.attributes.filter[!(type instanceof TableType)]
 		val scalarsWithoutKeys = scalars.filter[!primary]
-		
+
 		switch context {
 			Function,
 			FunctionReadParameters: return Scopes.scopeFor(scalars)
@@ -35,7 +35,8 @@ class TypescriptdslScopeProvider extends AbstractTypescriptdslScopeProvider {
 		}
 
 		return switch reference {
-			case FUNCTION_SELECT__PROPS: Scopes.scopeFor(scalars)
+			case FUNCTION_SELECT__ATTRIBUTES:
+				Scopes.scopeFor(scalars)
 			case reference.name === 'left',
 			case FIELD__ATTRIBUTE: {
 				if (getAllContainers(context).exists[it instanceof Function]) {

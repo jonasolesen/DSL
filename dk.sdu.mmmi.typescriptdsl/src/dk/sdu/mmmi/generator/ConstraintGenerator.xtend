@@ -1,30 +1,30 @@
 package dk.sdu.mmmi.generator
 
+import dk.sdu.mmmi.typescriptdsl.Add
 import dk.sdu.mmmi.typescriptdsl.And
 import dk.sdu.mmmi.typescriptdsl.Attribute
+import dk.sdu.mmmi.typescriptdsl.BooleanConstraint
+import dk.sdu.mmmi.typescriptdsl.Comparison
 import dk.sdu.mmmi.typescriptdsl.Constraint
 import dk.sdu.mmmi.typescriptdsl.Div
+import dk.sdu.mmmi.typescriptdsl.Equals
 import dk.sdu.mmmi.typescriptdsl.Expression
 import dk.sdu.mmmi.typescriptdsl.Field
+import dk.sdu.mmmi.typescriptdsl.Gte
+import dk.sdu.mmmi.typescriptdsl.Mul
 import dk.sdu.mmmi.typescriptdsl.NumberExp
+import dk.sdu.mmmi.typescriptdsl.Operator
 import dk.sdu.mmmi.typescriptdsl.Or
 import dk.sdu.mmmi.typescriptdsl.Parenthesis
 import dk.sdu.mmmi.typescriptdsl.RegexConstraint
+import dk.sdu.mmmi.typescriptdsl.StringConstraint
+import dk.sdu.mmmi.typescriptdsl.Sub
 import dk.sdu.mmmi.typescriptdsl.Table
 import java.util.HashSet
 import java.util.List
 import java.util.Set
 
 import static extension dk.sdu.mmmi.generator.Helpers.toCamelCase
-import dk.sdu.mmmi.typescriptdsl.Comparison
-import dk.sdu.mmmi.typescriptdsl.Add
-import dk.sdu.mmmi.typescriptdsl.Sub
-import dk.sdu.mmmi.typescriptdsl.Mul
-import dk.sdu.mmmi.typescriptdsl.StringConstraint
-import dk.sdu.mmmi.typescriptdsl.BooleanConstraint
-import dk.sdu.mmmi.typescriptdsl.Operator
-import dk.sdu.mmmi.typescriptdsl.Gte
-import dk.sdu.mmmi.typescriptdsl.Equals
 
 class ConstraintGenerator implements IntermediateGenerator {
 
