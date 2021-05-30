@@ -7,13 +7,14 @@ import dk.sdu.mmmi.typescriptdsl.FunctionRead
 import dk.sdu.mmmi.typescriptdsl.FunctionSelect
 import dk.sdu.mmmi.typescriptdsl.FunctionUpdate
 import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.TableFunction
 import java.util.List
 
 import static extension dk.sdu.mmmi.generator.Helpers.*
 
-class FunctionGenerator implements IntermediateGenerator {
-
-	override generate(List<Table> tables) '''
+class FunctionGenerator implements TableFunctionGenerator {
+	
+	override generate(List<Pair<Table, TableFunction>> entries) '''
 		export interface FunctionData {
 			type: 'findFirst' | 'delete' | 'create' | 'update'
 			where?: Record<string, unknown>
@@ -22,13 +23,16 @@ class FunctionGenerator implements IntermediateGenerator {
 		}
 		
 		export const tableFunctions: { [key in keyof Client]?: Record<string, FunctionData> } = {
-			«FOR t : tables.filter[functions.length > 0] SEPARATOR ','»«t.name.toCamelCase»: {
-				«FOR entry : t.functions.map[name -> body] SEPARATOR ','»
-					«entry.key»: {
-						«t.generateFunctionData(entry)»
-					}
-				«ENDFOR»
-			}
+			«entries.filter[value !== null].map[value.generateTableFunction].join(',\n')»
+		}
+	'''
+	
+	private def generateTableFunction(TableFunction tableFunction) '''
+		«tableFunction.table.name.toCamelCase»: {
+			«FOR entry : tableFunction.functions.map[name -> body] SEPARATOR ','»
+				«entry.key»: {
+					«tableFunction.table.generateFunctionData(entry)»
+				}
 			«ENDFOR»
 		}
 	'''

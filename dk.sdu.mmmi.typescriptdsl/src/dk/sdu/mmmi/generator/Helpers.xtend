@@ -100,7 +100,7 @@ class Helpers {
 			default: null
 		}
 
-		if (operator === null) return '''«constraint.left.name»: «constraint.right.asString»'''
+		if(operator === null) return '''«constraint.left.name»: «constraint.right.asString»'''
 		return '''«constraint.left.name»: { «operator»: «constraint.right.asString» }'''
 	}
 
@@ -111,9 +111,9 @@ class Helpers {
 			IntegerLiteral: literal.value
 		}
 	}
-	
-	static def scalars(List<Attribute> attributes, boolean omitKeys) {
+
+	static def scalars(List<Attribute> attributes, boolean includeKeys) {
 		val scalars = attributes.filter[!(type instanceof TableType)]
-		return omitKeys ? scalars.filter[!primary] : scalars
+		return includeKeys ? scalars : scalars.filter[!primary]
 	}
 }

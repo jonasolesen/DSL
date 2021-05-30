@@ -2,10 +2,10 @@ package dk.sdu.mmmi.scoping
 
 import dk.sdu.mmmi.typescriptdsl.Attribute
 import dk.sdu.mmmi.typescriptdsl.Function
-import dk.sdu.mmmi.typescriptdsl.FunctionReadParameter
-import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameter
+import dk.sdu.mmmi.typescriptdsl.FunctionRead
+import dk.sdu.mmmi.typescriptdsl.FunctionSelect
 import dk.sdu.mmmi.typescriptdsl.Table
-import dk.sdu.mmmi.typescriptdsl.TableType
+import dk.sdu.mmmi.typescriptdsl.TableFunction
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.naming.QualifiedName
@@ -13,8 +13,8 @@ import org.eclipse.xtext.resource.EObjectDescription
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.SimpleScope
 
-import static dk.sdu.mmmi.typescriptdsl.TypescriptdslPackage.Literals.*
 import static dk.sdu.mmmi.generator.Helpers.*
+import static dk.sdu.mmmi.typescriptdsl.TypescriptdslPackage.Literals.*
 import static org.eclipse.xtext.EcoreUtil2.*
 
 /** 
@@ -24,26 +24,14 @@ import static org.eclipse.xtext.EcoreUtil2.*
  */
 class TypescriptdslScopeProvider extends AbstractTypescriptdslScopeProvider {
 	override getScope(EObject context, EReference reference) {
-		val table = getContainerOfType(context, Table)
-		if(table === null) return super.getScope(context, reference)
-		val scalars = scalars(table.attributes, false)
-		val scalarsWithoutKeys = scalars(table.attributes, true)
+		val function = getContainerOfType(context, Function)
+		if(function !== null) return context.getFunctionScope(function)
 
-		switch context {
-			Function,
-			FunctionReadParameter: return Scopes.scopeFor(scalars)
-			FunctionWriteParameter: return Scopes.scopeFor(scalarsWithoutKeys)
-		}
+		if(getContainerOfType(context, Table) === null) return super.getScope(context, reference)
 
-		return switch reference {
-			case FUNCTION_SELECT__ATTRIBUTES:
-				Scopes.scopeFor(scalars)
+		switch reference {
 			case reference.name === 'left',
 			case FIELD__ATTRIBUTE: {
-				if (getAllContainers(context).exists[it instanceof Function]) {
-					return super.getScope(context, reference)
-				}
-
 				val attribute = getContainerOfType(context, Attribute)
 				val alias = EObjectDescription.create(QualifiedName.create('it'), attribute)
 
@@ -52,5 +40,17 @@ class TypescriptdslScopeProvider extends AbstractTypescriptdslScopeProvider {
 			default:
 				super.getScope(context, reference)
 		}
+	}
+
+	private def getFunctionScope(EObject context, Function function) {
+		val table = getContainerOfType(context, TableFunction).table
+
+		val includeKeys = switch function {
+			FunctionSelect,
+			FunctionRead: true
+			default: false
+		}
+
+		Scopes.scopeFor(scalars(table.attributes, includeKeys))
 	}
 }

@@ -6,7 +6,7 @@ import dk.sdu.mmmi.typescriptdsl.FunctionCreateParameter
 import dk.sdu.mmmi.typescriptdsl.FunctionReadParameter
 import dk.sdu.mmmi.typescriptdsl.FunctionSelect
 import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameter
-import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.TableFunction
 import java.util.List
 import java.util.Set
 import org.eclipse.xtext.validation.Check
@@ -74,10 +74,10 @@ class FunctionValidator extends AbstractTypescriptdslValidator {
 	}
 
 	def validateCreateRecords(FunctionCreate function, List<Attribute> attributes) {
-		val table = getContainerOfType(function, Table)
+		val tableFunction = getContainerOfType(function, TableFunction)
 
-		if(table === null) return
-		val required = scalars(table.attributes.filter[!optional].toList, true)
+		if(tableFunction === null) return
+		val required = scalars(tableFunction.table.attributes.filter[!optional].toList, false)
 		val missing = required.filter[!attributes.contains(it)]
 
 		if (missing.length > 0) {

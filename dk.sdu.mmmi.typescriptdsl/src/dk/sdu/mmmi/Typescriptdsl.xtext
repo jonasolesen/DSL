@@ -8,6 +8,8 @@ Database:
 	config += Config*
 	
 	tables += Table+
+	
+	functions += TableFunction*
 ;
 
 Config returns Config:
@@ -21,7 +23,10 @@ Config returns Config:
 Table:
 	'table' name=ID ('extends' superType=[Table])? ':'
 		attributes+=Attribute+
-		
+;
+
+TableFunction:
+	'functions' '<' table=[Table] '>:'
 		functions+=BaseFunction*
 ;
 

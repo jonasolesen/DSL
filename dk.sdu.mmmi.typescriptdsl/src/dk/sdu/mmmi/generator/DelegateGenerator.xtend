@@ -24,27 +24,30 @@ import dk.sdu.mmmi.typescriptdsl.RegexConstraint
 import dk.sdu.mmmi.typescriptdsl.StringConstraint
 import dk.sdu.mmmi.typescriptdsl.Sub
 import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.TableFunction
 import java.util.List
 
 import static extension dk.sdu.mmmi.generator.Helpers.*
 
-class DelegateGenerator implements IntermediateGenerator {
+class DelegateGenerator implements TableFunctionGenerator {
 
-	override generate(List<Table> tables) '''
+	override generate(List<Pair<Table, TableFunction>> entries) '''
 		type ClientPromise<T, Args, Payload> = CheckSelect<Args, Promise<T | null>, Promise<Payload | null>>
 		
-		«FOR t : tables SEPARATOR '\n'»
-			«t.generateDelegate»
+		«FOR entry : entries SEPARATOR '\n'»
+			«generateDelegate(entry.key, entry.value)»
 		«ENDFOR»
 		
-		«generateClient(tables)»
+		«generateClient(entries.map[key])»
 	'''
 
-	private def generateDelegate(Table table) '''
+	private def generateDelegate(Table table, TableFunction tableFunction) '''
 		interface «table.name»Delegate {
-			«FOR f : table.functions»
+			«IF tableFunction !== null»
+			«FOR f : tableFunction.functions»
 				«f.name + f.body.generateSignature(table) + f.body.generateReturnType(table)»
 			«ENDFOR»
+			«ENDIF»
 			findFirst<T extends «table.name»Args>(args: SelectSubset<T, «table.name»Args>): ClientPromise<«table.name», T, «table.name»GetPayload<T>>
 			delete(where: WhereInput<«table.name»>): Promise<number>
 			create(args: { data: «table.name»CreateInput }): Promise<«table.name»>
