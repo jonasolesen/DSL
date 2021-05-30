@@ -2,8 +2,8 @@ package dk.sdu.mmmi.scoping
 
 import dk.sdu.mmmi.typescriptdsl.Attribute
 import dk.sdu.mmmi.typescriptdsl.Function
-import dk.sdu.mmmi.typescriptdsl.FunctionReadParameters
-import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameters
+import dk.sdu.mmmi.typescriptdsl.FunctionReadParameter
+import dk.sdu.mmmi.typescriptdsl.FunctionWriteParameter
 import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
 import org.eclipse.emf.ecore.EObject
@@ -14,6 +14,7 @@ import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.SimpleScope
 
 import static dk.sdu.mmmi.typescriptdsl.TypescriptdslPackage.Literals.*
+import static dk.sdu.mmmi.generator.Helpers.*
 import static org.eclipse.xtext.EcoreUtil2.*
 
 /** 
@@ -25,13 +26,13 @@ class TypescriptdslScopeProvider extends AbstractTypescriptdslScopeProvider {
 	override getScope(EObject context, EReference reference) {
 		val table = getContainerOfType(context, Table)
 		if(table === null) return super.getScope(context, reference)
-		val scalars = table.attributes.filter[!(type instanceof TableType)]
-		val scalarsWithoutKeys = scalars.filter[!primary]
+		val scalars = scalars(table.attributes, false)
+		val scalarsWithoutKeys = scalars(table.attributes, true)
 
 		switch context {
 			Function,
-			FunctionReadParameters: return Scopes.scopeFor(scalars)
-			FunctionWriteParameters: return Scopes.scopeFor(scalarsWithoutKeys)
+			FunctionReadParameter: return Scopes.scopeFor(scalars)
+			FunctionWriteParameter: return Scopes.scopeFor(scalarsWithoutKeys)
 		}
 
 		return switch reference {

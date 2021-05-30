@@ -10,7 +10,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 
 class EnvironmentGenerator implements FileGenerator {
-	
+
 	override generate(Resource resource, IFileSystemAccess2 fsa) {
 		val database = resource.allContents.filter(Database).head
 		fsa.generateFile(".env", ''' 
@@ -18,14 +18,15 @@ class EnvironmentGenerator implements FileGenerator {
 			«database.config.map[it.generateConfigurations].join("\n")»
 		''')
 	}
-	
+
 	def CharSequence generateConfigurations(Config config) {
 		switch config {
 			ConfigUrl: '''DATABASE_HOST=«config.value»'''
 			ConfigPort: '''DATABASE_PORT=«config.value»'''
 			ConfigUsername: '''DATABASE_USER=«config.value»'''
 			ConfigPassword: '''DATABASE_PASSWORD=«config.value»'''
-			default: "unknown"
+			default:
+				"unknown"
 		}
 	}
 }

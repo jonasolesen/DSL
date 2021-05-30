@@ -22,14 +22,14 @@ class FunctionGenerator implements IntermediateGenerator {
 		}
 		
 		export const tableFunctions: { [key in keyof Client]?: Record<string, FunctionData> } = {
-		«FOR t : tables.filter[functions.length > 0] SEPARATOR ',\n'»«t.name.toCamelCase»: {
-				«FOR entry : t.functions.map[name -> body] SEPARATOR ',\n'»
+			«FOR t : tables.filter[functions.length > 0] SEPARATOR ','»«t.name.toCamelCase»: {
+				«FOR entry : t.functions.map[name -> body] SEPARATOR ','»
 					«entry.key»: {
 						«t.generateFunctionData(entry)»
 					}
 				«ENDFOR»
-				}
-		«ENDFOR»
+			}
+			«ENDFOR»
 		}
 	'''
 
@@ -75,16 +75,16 @@ class FunctionGenerator implements IntermediateGenerator {
 	
 	private def generateData(Function function) {
 		val data = switch function {
-			FunctionCreate: function.data
-			FunctionUpdate: function.data
+			FunctionCreate: function.data.parameters.filter[record !== null].map[record].toList
+			FunctionUpdate: function.data.records
 			default: null
 		}
 		
-		if(data === null || data.records.length === 0) return ''
+		if(data === null || data.length === 0) return ''
 
 		'''
 			data: {
-				«FOR r : data.records SEPARATOR ',\n'»«r.key.name»: «r.value.asString»«ENDFOR»
+				«FOR r : data SEPARATOR ',\n'»«r.key.name»: «r.value.asString»«ENDFOR»
 			},
 		'''
 	}

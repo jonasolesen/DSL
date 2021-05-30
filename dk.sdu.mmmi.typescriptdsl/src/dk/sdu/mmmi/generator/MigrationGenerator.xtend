@@ -2,6 +2,7 @@ package dk.sdu.mmmi.generator
 
 import dk.sdu.mmmi.typescriptdsl.Attribute
 import dk.sdu.mmmi.typescriptdsl.AttributeType
+import dk.sdu.mmmi.typescriptdsl.BoolType
 import dk.sdu.mmmi.typescriptdsl.DateType
 import dk.sdu.mmmi.typescriptdsl.IntType
 import dk.sdu.mmmi.typescriptdsl.StringType
@@ -11,7 +12,6 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 
 import static extension dk.sdu.mmmi.generator.Helpers.*
-import dk.sdu.mmmi.typescriptdsl.BoolType
 
 class MigrationGenerator implements FileGenerator {
 	override generate(Resource resource, IFileSystemAccess2 fsa) {

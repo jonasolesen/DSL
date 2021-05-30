@@ -1,10 +1,9 @@
 package dk.sdu.mmmi.generator
 
+import dk.sdu.mmmi.typescriptdsl.Attribute
 import dk.sdu.mmmi.typescriptdsl.AttributeType
 import dk.sdu.mmmi.typescriptdsl.BooleanLiteral
-import dk.sdu.mmmi.typescriptdsl.Contains
 import dk.sdu.mmmi.typescriptdsl.DateType
-import dk.sdu.mmmi.typescriptdsl.Equals
 import dk.sdu.mmmi.typescriptdsl.FunctionComparison
 import dk.sdu.mmmi.typescriptdsl.Gt
 import dk.sdu.mmmi.typescriptdsl.Gte
@@ -13,10 +12,14 @@ import dk.sdu.mmmi.typescriptdsl.IntegerLiteral
 import dk.sdu.mmmi.typescriptdsl.Literal
 import dk.sdu.mmmi.typescriptdsl.Lt
 import dk.sdu.mmmi.typescriptdsl.Lte
+import dk.sdu.mmmi.typescriptdsl.StringContains
+import dk.sdu.mmmi.typescriptdsl.StringEquals
 import dk.sdu.mmmi.typescriptdsl.StringLiteral
 import dk.sdu.mmmi.typescriptdsl.StringType
 import dk.sdu.mmmi.typescriptdsl.Table
+import dk.sdu.mmmi.typescriptdsl.TableType
 import java.util.ArrayList
+import java.util.List
 
 class Helpers {
 
@@ -92,8 +95,8 @@ class Helpers {
 			Gte: 'gte'
 			Lt: 'lt'
 			Lte: 'lte'
-			Equals: 'equals'
-			Contains: 'contains'
+			StringEquals: 'StringEquals'
+			StringContains: 'StringContains'
 			default: null
 		}
 
@@ -107,5 +110,10 @@ class Helpers {
 			BooleanLiteral: literal.value
 			IntegerLiteral: literal.value
 		}
+	}
+	
+	static def scalars(List<Attribute> attributes, boolean omitKeys) {
+		val scalars = attributes.filter[!(type instanceof TableType)]
+		return omitKeys ? scalars.filter[!primary] : scalars
 	}
 }

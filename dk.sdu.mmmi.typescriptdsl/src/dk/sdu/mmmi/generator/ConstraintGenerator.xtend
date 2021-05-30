@@ -7,7 +7,7 @@ import dk.sdu.mmmi.typescriptdsl.BooleanConstraint
 import dk.sdu.mmmi.typescriptdsl.Comparison
 import dk.sdu.mmmi.typescriptdsl.Constraint
 import dk.sdu.mmmi.typescriptdsl.Div
-import dk.sdu.mmmi.typescriptdsl.Equals
+import dk.sdu.mmmi.typescriptdsl.Equal
 import dk.sdu.mmmi.typescriptdsl.Expression
 import dk.sdu.mmmi.typescriptdsl.Field
 import dk.sdu.mmmi.typescriptdsl.Gte
@@ -96,7 +96,7 @@ class ConstraintGenerator implements IntermediateGenerator {
 	def CharSequence asString(Operator operator) {
 		switch operator {
 			Gte: '>='
-			Equals: '=='
+			Equal: '=='
 		}
 	}
 

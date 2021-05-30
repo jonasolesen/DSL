@@ -13,9 +13,9 @@ import dk.sdu.mmmi.typescriptdsl.Function
 import dk.sdu.mmmi.typescriptdsl.FunctionCreate
 import dk.sdu.mmmi.typescriptdsl.FunctionDelete
 import dk.sdu.mmmi.typescriptdsl.FunctionRead
-import dk.sdu.mmmi.typescriptdsl.FunctionReadParameters
 import dk.sdu.mmmi.typescriptdsl.FunctionSelect
 import dk.sdu.mmmi.typescriptdsl.FunctionUpdate
+import dk.sdu.mmmi.typescriptdsl.MaybeAttribute
 import dk.sdu.mmmi.typescriptdsl.Mul
 import dk.sdu.mmmi.typescriptdsl.NumberExp
 import dk.sdu.mmmi.typescriptdsl.Or
@@ -61,18 +61,19 @@ class DelegateGenerator implements IntermediateGenerator {
 	'''
 
 	private def generateSignature(Function function, Table table) {
-		val parameters = switch function {
-			FunctionRead: function.where
-			FunctionUpdate: function.where
-			FunctionDelete: function.where
+		val List<MaybeAttribute> parameters = switch function {
+			FunctionCreate: function.data.parameters
+			FunctionRead: function.where.parameters
+			FunctionUpdate: function.where.parameters
+			FunctionDelete: function.where.parameters
 			default: null
 		}
 
-		'''(«IF parameters !== null && parameters.parameters.exists[attribute !== null] »args: { «parameters.generateReadParameters» }«ENDIF»): '''
+		'''(«IF parameters !== null && parameters.exists[attribute !== null] »args: { «parameters.generateInputParameters» }«ENDIF»): '''
 	}
 
-	private def generateReadParameters(FunctionReadParameters read) {
-		read.parameters.filter[attribute !== null && constraint === null].map [
+	private def generateInputParameters(List<MaybeAttribute> attributes) {
+		attributes.filter[attribute !== null].map [
 			'''«attribute.name»: «attribute.type.asString»'''
 		].join(', ')
 	}
@@ -84,31 +85,15 @@ class DelegateGenerator implements IntermediateGenerator {
 			FunctionCreate: true -> function.select
 			default: false -> null
 		}
-		
+
 		if(!selectEntry.key) return '''Promise<number>'''
-		
+
 		val returnType = switch selectEntry {
 			case selectEntry.value === null: 'null'
 			default: '''{ select: { «selectEntry.value.attributes.map[name + ': true'].join(', ')» } }'''
 		}
-		
+
 		return '''Promise<«table.name.toPascalCase»GetPayload<«returnType»>>'''
-		
-		
-//		if(select.value === null)
-//		
-//		val Pair<Boolean, String> returnType = switch function {
-//			FunctionRead: true -> '''{ select: { «function.select.attributes.map[name + ': true'].join(', ')» } }'''
-//			FunctionCreate: true -> '''{ select: { «function.select.attributes.map[name + ': true'].join(', ')» } }'''
-//			FunctionUpdate,
-//			FunctionDelete: false -> 'number'
-//			case (function as FunctionRead).select === null: false -> 'null'
-//			default: true -> '''{ select: { «(function as FunctionRead).select.attributes.map[name + ': true'].join(', ')» } }'''
-//		}
-//
-//		// If update or delete, return number - else use payload
-//		if(!returnType.key) return '''Promise<«returnType.value»>'''
-//		return '''Promise<«table.name.toPascalCase»GetPayload<«returnType.value»>>'''
 	}
 
 	def CharSequence constraints(Constraint cons, Attribute current) {

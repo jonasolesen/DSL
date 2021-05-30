@@ -35,27 +35,31 @@ BaseFunction:
 ;
 
 FunctionCreate returns Function:
-	{FunctionCreate} 'create' data=FunctionWriteParameters (select=FunctionSelect)?
+	{FunctionCreate} 'create' data=FunctionCreateParameter (select=FunctionSelect)?
 ;
 
 FunctionRead returns Function:
-	{FunctionRead} 'read' where=FunctionReadParameters (select=FunctionSelect)?
+	{FunctionRead} 'read' where=FunctionReadParameter (select=FunctionSelect)?
 ;
 
 FunctionUpdate returns Function:
-	{FunctionUpdate} 'update' where=FunctionReadParameters 'set' data=FunctionWriteParameters
+	{FunctionUpdate} 'update' where=FunctionReadParameter 'set' data=FunctionWriteParameter
 ;
 
 FunctionDelete returns Function:
-	{FunctionDelete} 'delete' where=FunctionReadParameters
+	{FunctionDelete} 'delete' where=FunctionReadParameter
 ;
 
-FunctionReadParameters:
-	'(' parameters+=FunctionParameter (',' parameters+=FunctionParameter)* ')'
+FunctionReadParameter:
+	'(' parameters+=AttributeOrConstraint (',' parameters+=AttributeOrConstraint)* ')'
 ;
 
-FunctionWriteParameters:
+FunctionWriteParameter:
 	'(' records+=Record (',' records+=Record)* ')'
+;
+
+FunctionCreateParameter:
+	'(' parameters+=AttributeOrRecord (',' parameters+=AttributeOrRecord)* ')'
 ;
 
 Record:
@@ -74,8 +78,12 @@ FunctionSelect:
 	'select' attributes+=[Attribute]+
 ;
 
-FunctionParameter:
+AttributeOrConstraint returns MaybeAttribute:
 	attribute=[Attribute] | constraint=(FunctionComparison | BooleanConstraint | StringConstraint)
+;
+
+AttributeOrRecord returns MaybeAttribute:
+	attribute=[Attribute] | record=Record
 ;
 
 OrConstraint returns Constraint:
@@ -103,7 +111,7 @@ BooleanComparison returns Operator:
 ;
 
 StringComparison returns Operator:
-	{Contains} 'contains' | {Equals} 'equals'
+	{StringContains} 'contains' | {StringEquals} 'equals'
 ;
 
 Condition returns Constraint:
@@ -130,7 +138,7 @@ Primitive returns Expression:
 ;
 
 Operator returns Operator: 
-	{Gt} '>' | {Gte} '>=' | {Lt} '<' | {Lte} '<=' | {Equals} '=='
+	{Gt} '>' | {Gte} '>=' | {Lt} '<' | {Lte} '<=' | {Equal} '==' | {NotEqual} '!='
 ;
 
 Field:
