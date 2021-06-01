@@ -13,7 +13,7 @@ import java.util.List
 import static extension dk.sdu.mmmi.generator.Helpers.*
 
 class FunctionGenerator implements TableFunctionGenerator {
-	
+
 	override generate(List<Pair<Table, TableFunction>> entries) '''
 		export interface FunctionData {
 			type: 'findFirst' | 'delete' | 'create' | 'update'
@@ -26,7 +26,7 @@ class FunctionGenerator implements TableFunctionGenerator {
 			«entries.filter[value !== null].map[value.generateTableFunction].join(',\n')»
 		}
 	'''
-	
+
 	private def generateTableFunction(TableFunction tableFunction) '''
 		«tableFunction.table.name.toCamelCase»: {
 			«FOR entry : tableFunction.functions.map[name -> body] SEPARATOR ','»
@@ -67,7 +67,7 @@ class FunctionGenerator implements TableFunctionGenerator {
 			FunctionRead: function.select
 			default: null
 		}
-		
+
 		if(select === null) return ''
 
 		'''
@@ -76,14 +76,14 @@ class FunctionGenerator implements TableFunctionGenerator {
 			},
 		'''
 	}
-	
+
 	private def generateData(Function function) {
 		val data = switch function {
 			FunctionCreate: function.data.parameters.filter[record !== null].map[record].toList
 			FunctionUpdate: function.data.records
 			default: null
 		}
-		
+
 		if(data === null || data.length === 0) return ''
 
 		'''

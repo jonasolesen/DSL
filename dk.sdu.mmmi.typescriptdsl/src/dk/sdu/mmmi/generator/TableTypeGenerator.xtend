@@ -10,7 +10,7 @@ import static extension dk.sdu.mmmi.generator.Helpers.*
 
 class TableTypeGenerator implements IntermediateGenerator {
 	override generate(List<Table> tables) {
-		tables.filter(Table).map[generateTypes].join("\n")
+		tables.filter(Table).map[generateTypes].join('\n')
 	}
 
 	private def CharSequence generateTypes(Table table) {

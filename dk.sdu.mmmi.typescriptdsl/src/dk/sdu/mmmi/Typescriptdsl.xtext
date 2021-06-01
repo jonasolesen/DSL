@@ -25,14 +25,14 @@ Table:
 		attributes+=Attribute+
 ;
 
-TableFunction:
-	'functions' '<' table=[Table] '>:'
-		functions+=BaseFunction*
-;
-
 Attribute:
 	name=ID ':' type=AttributeType (optional?='?')? (primary?='primary')? 
 		('constraint' constraint=OrConstraint)?
+;
+
+TableFunction:
+	'functions' '<' table=[Table] '>:'
+		functions+=BaseFunction*
 ;
 
 BaseFunction:
@@ -71,12 +71,12 @@ Record:
 	key=[Attribute] ':' value=Literal
 ;
 
-Boolean:
-	'true' | 'false'
-;
-
 Literal:
     {IntegerLiteral} value=INT | {StringLiteral} value=STRING | {BooleanLiteral} value=Boolean
+;
+
+Boolean:
+	'true' | 'false'
 ;
 
 FunctionSelect:
@@ -84,7 +84,7 @@ FunctionSelect:
 ;
 
 AttributeOrConstraint returns MaybeAttribute:
-	attribute=[Attribute] | constraint=(FunctionComparison | BooleanConstraint | StringConstraint)
+	attribute=[Attribute] | constraint=FunctionComparison
 ;
 
 AttributeOrRecord returns MaybeAttribute:
@@ -103,27 +103,11 @@ FunctionComparison:
 	left=[Attribute] operator=Operator right=Literal
 ;
 
-BooleanConstraint returns FunctionComparison:
-	left=[Attribute] operator=BooleanComparison right=Literal
-;
-
-StringConstraint returns FunctionComparison:
-	left=[Attribute] operator=StringComparison right=Literal
-;
-
-BooleanComparison returns Operator:
-	{Is} 'is'
-;
-
-StringComparison returns Operator:
-	{StringContains} 'contains' | {StringEquals} 'equals'
-;
-
 Condition returns Constraint:
 	Comparison |
-	{BooleanConstraint} left=[Attribute] operator=BooleanComparison right=Boolean |
 	{RegexConstraint} value=STRING |
-	{StringConstraint} left=[Attribute] operator=StringComparison right=STRING
+	{BooleanConstraint} left=[Attribute] operator=('==') right=Boolean |
+	{StringConstraint} left=[Attribute] operator=('==' | '!=' | 'contains') right=STRING
 ;
 
 Comparison:
@@ -143,7 +127,7 @@ Primitive returns Expression:
 ;
 
 Operator returns Operator: 
-	{Gt} '>' | {Gte} '>=' | {Lt} '<' | {Lte} '<=' | {Equal} '==' | {NotEqual} '!='
+	{Gt} '>' | {Gte} '>=' | {Lt} '<' | {Lte} '<=' | {Equal} '==' | {NotEqual} '!=' | {Contains} 'contains'
 ;
 
 Field:

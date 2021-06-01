@@ -38,7 +38,7 @@ Workflow {
 				generateStub = false
 			}
 			validator = {
-				composedCheck = "dk.sdu.mmmi.validation.ConstraintValidator"
+				composedCheck = "dk.sdu.mmmi.validation.TableValidator"
 				composedCheck = "dk.sdu.mmmi.validation.FunctionValidator"
 				composedCheck = "org.eclipse.xtext.validation.NamesAreUniqueValidator"
 				// Generates checks for @Deprecated grammar annotations, an IssueProvider and a corresponding PropertyPage

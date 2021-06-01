@@ -12,14 +12,13 @@ import dk.sdu.mmmi.typescriptdsl.IntegerLiteral
 import dk.sdu.mmmi.typescriptdsl.Literal
 import dk.sdu.mmmi.typescriptdsl.Lt
 import dk.sdu.mmmi.typescriptdsl.Lte
-import dk.sdu.mmmi.typescriptdsl.StringContains
-import dk.sdu.mmmi.typescriptdsl.StringEquals
 import dk.sdu.mmmi.typescriptdsl.StringLiteral
 import dk.sdu.mmmi.typescriptdsl.StringType
 import dk.sdu.mmmi.typescriptdsl.Table
 import dk.sdu.mmmi.typescriptdsl.TableType
 import java.util.ArrayList
 import java.util.List
+import dk.sdu.mmmi.typescriptdsl.Contains
 
 class Helpers {
 
@@ -95,8 +94,7 @@ class Helpers {
 			Gte: 'gte'
 			Lt: 'lt'
 			Lte: 'lte'
-			StringEquals: 'StringEquals'
-			StringContains: 'StringContains'
+			Contains: 'contains'
 			default: null
 		}
 
@@ -115,5 +113,16 @@ class Helpers {
 	static def scalars(List<Attribute> attributes, boolean includeKeys) {
 		val scalars = attributes.filter[!(type instanceof TableType)]
 		return includeKeys ? scalars : scalars.filter[!primary]
+	}
+	
+	static def List<Attribute> extractSuperAttributes(Table table, List<Attribute> attributes) {
+		if (table.superType !== null) attributes.addAll(table.superType.extractSuperAttributes(attributes))
+		else attributes.addAll(table.attributes)
+		
+		attributes
+	}
+	
+	static def primaryKeys(List<Attribute> attributes) {
+		attributes.filter[primary]
 	}
 }

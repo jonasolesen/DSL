@@ -8,10 +8,10 @@ import static extension dk.sdu.mmmi.generator.Helpers.*
 class TableDataGenerator implements IntermediateGenerator {
 	
 	override generate(List<Table> tables) {		
-		tables.generateTablesTypes
+		tables.generateTableTypes
 	}
 	
-	private def generateTablesTypes(List<Table> tables) '''
+	private def generateTableTypes(List<Table> tables) '''
 		export interface TableData {
 			typeName: string
 			tableName: string

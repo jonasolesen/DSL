@@ -3,7 +3,6 @@ package dk.sdu.mmmi.generator
 import dk.sdu.mmmi.typescriptdsl.Add
 import dk.sdu.mmmi.typescriptdsl.And
 import dk.sdu.mmmi.typescriptdsl.Attribute
-import dk.sdu.mmmi.typescriptdsl.BooleanConstraint
 import dk.sdu.mmmi.typescriptdsl.Comparison
 import dk.sdu.mmmi.typescriptdsl.Constraint
 import dk.sdu.mmmi.typescriptdsl.Div
@@ -66,11 +65,13 @@ class ConstraintGenerator implements IntermediateGenerator {
 		switch cons {
 			RegexConstraint: '''new RegExp(/«cons.value»/g).test(value.«current.name»)'''
 			StringConstraint: {
-				val operator = cons.right === 'equals'
-						? '''«cons.left.name = cons.right»''' : '''«cons.left.name».includes('«cons.right»')'''
+				val operator = switch cons.operator {
+					case '==': '''«cons.left.name = cons.right»'''
+					case '!=': '''«cons.left.name != cons.right»'''
+					case 'contains': '''«cons.left.name».includes('«cons.right»')'''
+				}
 				'''value.«operator»'''
 			}
-			BooleanConstraint: '''«cons.left.name» = «cons.right»'''
 			Comparison: '''«cons.left.printExp» «cons.operator.asString» «cons.right.printExp»'''
 			Or: '''«cons.left.constraints(current)» || «cons.right.constraints(current)»'''
 			And: '''«cons.left.constraints(current)» && «cons.right.constraints(current)»'''
@@ -103,8 +104,6 @@ class ConstraintGenerator implements IntermediateGenerator {
 	def Set<String> findFields(Constraint con, Attribute current, Set<String> fields) {
 		switch con {
 			StringConstraint:
-				fields.add(con.left.name)
-			BooleanConstraint:
 				fields.add(con.left.name)
 			Comparison: {
 				con.left.extractFields(fields)
